@@ -107,12 +107,20 @@ int main()
 	displayText.setFont(font);
 	displayText.setPosition(20, 20);
 	displayText.setString("");
+	displayText.setColor(sf::Color::Blue);
 
 	//std::thread t1;
 	sf::Thread thread(&MonitorFetch);
 	
 	sf::Clock messageClock;
 	messageClock.restart();
+
+	int score = 0;
+	sf::Text scoreText;
+	scoreText.setFont(font);
+	scoreText.setPosition(SCREENWIDTH - 120, 20);
+	scoreText.setString("Score: " + std::to_string(score));
+	scoreText.setColor(sf::Color::Blue);
 
 	// Start game loop 
 	while (window.isOpen())
@@ -146,7 +154,7 @@ int main()
 			}
 		}
 
-		if (messageClock.getElapsedTime().asSeconds() > 2.5)
+		if (messageClock.getElapsedTime().asSeconds() > 0.5)
 		{
 			if (monitor->NewMsgAdded() == true)
 				thread.launch();
@@ -182,6 +190,8 @@ int main()
 				it = enemies.erase(it);//erase the object(calls the objects destructor)
 				hitSound.play();
 				monitor->Deposit("Enemy Killed");
+				score += 25;
+				scoreText.setString("Score: " + std::to_string(score));
 			}
 			else ++it;
 		}
@@ -192,6 +202,12 @@ int main()
 			enemies.push_back(e);
 			spawnClock.restart();
 			monitor->Deposit("Enemy Spawned");
+		}
+
+		if (score == 100)
+		{
+			background1.setColor(sf::Color::Red);
+			background2.setColor(sf::Color::Red);
 		}
 
 		//draw frame items
@@ -211,6 +227,7 @@ int main()
 		//std::thread t1(MonitorFetch);
 		
 		window.draw(displayText);
+		window.draw(scoreText);
 
 		// Finally, display rendered frame on screen 
 		window.display();
