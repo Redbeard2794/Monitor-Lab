@@ -23,12 +23,27 @@
 #include <iostream> 
 #define _USE_MATH_DEFINES
 #include <math.h>
-
+#include <thread>
 
 
 ////////////////////////////////////////////////////////////
 ///Entrypoint of application 
 //////////////////////////////////////////////////////////// 
+
+Monitor* monitor = new Monitor();
+sf::Text displayText;
+
+
+void MonitorFetch()
+{
+	//while (true)
+	//{
+		std::string text;
+		monitor->Fetch(text);
+		std::cout << text << std::endl;
+		displayText.setString(text);
+	//}
+}
 
 int main()
 {
@@ -89,11 +104,15 @@ int main()
 	sf::Sound shootSound;
 	shootSound.setBuffer(shootSoundBuffer);
 
-	Monitor* monitor = new Monitor();
-	sf::Text displayText;
 	displayText.setFont(font);
 	displayText.setPosition(20, 20);
 	displayText.setString("");
+
+	//std::thread t1;
+	sf::Thread thread(&MonitorFetch);
+	
+	sf::Clock messageClock;
+	messageClock.restart();
 
 	// Start game loop 
 	while (window.isOpen())
@@ -119,11 +138,20 @@ int main()
 
 			if ((Event.type == sf::Event::KeyPressed) && (Event.key.code == sf::Keyboard::F))
 			{
-				std::string text; 
-				monitor->Fetch(text);
-				std::cout << text << std::endl;
-				displayText.setString(text);
+				//std::string text; 
+				//monitor->Fetch(text);
+				//std::cout << text << std::endl;
+				//displayText.setString(text);
+				
 			}
+		}
+
+		if (messageClock.getElapsedTime().asSeconds() > 2.5)
+		{
+			if (monitor->NewMsgAdded() == true)
+				thread.launch();
+			else std::cout << "No new messages were found." << std::endl;
+			messageClock.restart();
 		}
 
 		//prepare frame
@@ -180,6 +208,8 @@ int main()
 			window.draw(*enemies.at(i));
 		}
 
+		//std::thread t1(MonitorFetch);
+		
 		window.draw(displayText);
 
 		// Finally, display rendered frame on screen 
